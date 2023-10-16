@@ -1,5 +1,4 @@
-const { app, BrowserWindow, globalShortcut } = require('electron');
-
+import { app, BrowserWindow, ipcMain} from 'electron'
 import path from 'node:path'
 
 // The built directory structure
@@ -15,7 +14,7 @@ process.env.DIST = path.join(__dirname, '../dist')
 process.env.VITE_PUBLIC = app.isPackaged ? process.env.DIST : path.join(process.env.DIST, '../public')
 
 
-let win:BrowserWindow | null
+let win: BrowserWindow | null
 // 🚧 Use ['ENV_NAME'] avoid vite:define plugin - Vite@2.x
 const VITE_DEV_SERVER_URL = process.env['VITE_DEV_SERVER_URL']
 
@@ -27,9 +26,7 @@ function createWindow() {
     },
   })
   win.setMenu(null);
-  globalShortcut.register('F11', () => {
-    win.setFullScreen(!win.isFullScreen());
-  });
+  win.setFullScreen(true);
 
   // Test active push message to Renderer-process.
   win.webContents.on('did-finish-load', () => {
@@ -44,6 +41,9 @@ function createWindow() {
   }
 }
 
+ipcMain.on('data',(event,msg)=>{
+  console.log(msg);
+})
 // Quit when all windows are closed, except on macOS. There, it's common
 // for applications and their menu bar to stay active until the user quits
 // explicitly with Cmd + Q.

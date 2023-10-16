@@ -8,8 +8,8 @@ function App() {
   const [pressed, setPressed] = useState(false);
 
   const handleButtonClick = () => {
-    setPressed(true);
-    setTimeout(() => setPressed(false), 300);
+    setPressed(true);;
+    window.ipcRenderer.send('data','open');
   };
 
   return (
