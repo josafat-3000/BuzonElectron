@@ -51,7 +51,8 @@
 .custom-button {
   background-color: green;
   color: white;
-  width: 16em;
+  width: 30em;
+  height: 5em;
   padding: 10px 20px;
   border: none;
   outline: none; 
@@ -59,9 +60,36 @@
   cursor: pointer;
   transition: background-color 0.3s;
   transition: transform 0.3s;
+  font-size: 1.5em;
 }
 
 .custom-button.pressed {
-  background-color: #4CAF50; /* Un tono más oscuro de verde al presionar el botón */
+  background-color: #F4B400; /* Un tono más oscuro de verde al presionar el botón */
   transform: scale(0.9);
 }
+
+.popup {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -15%);
+  width: 70%; /* La ventana emergente ocupa el 50% del ancho de la pantalla */
+  background-color: #CCCCCC; /* Color verde semi-transparente */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+  border: 1px solid #000;
+  border-radius: 5px;
+  font-size: 1.5em;
+  height: 250px;
+}
+
+.popup-content {
+  background-color: #CCCCCC; /* Color verde sólido */
+  width: 100%; /* El contenido de la ventana emergente ocupa todo el ancho */
+  text-align: center;
+  color: #000;
+  margin: auto;
+}
+
