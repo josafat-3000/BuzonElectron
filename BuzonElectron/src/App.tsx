@@ -11,7 +11,7 @@ function App() {
     if (showPopup) {
       const timeout = setTimeout(() => {
         setShowPopup(false);
-      }, 8000); // 8000 milisegundos (8 segundos)
+      }, 4000); // 8000 milisegundos (8 segundos)
 
       return () => {
         clearTimeout(timeout);

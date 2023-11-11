@@ -67,6 +67,23 @@ ipcMain.on('data', (event, msg) => {
       });
     }, 100);
   });
+  exec('node /home/orangepi/Desktop/prueba/index.js', (error, stdout, stderr) => {
+    if (error) {
+      console.error(`Error: ${error}`);
+      return;
+    }
+    console.log('ticket listo ');
+  });
+  setTimeout(() => {
+    exec('lp ticket.bin', (error, stdout, stderr) => {
+      if (error) {
+        console.error(`Error: ${error}`);
+        return;
+      }
+      console.log('ticket impreso ');
+    });
+  }, 100);
+  
 })
 // Quit when all windows are closed, except on macOS. There, it's common
 // for applications and their menu bar to stay active until the user quits
