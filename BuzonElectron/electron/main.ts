@@ -3,6 +3,38 @@ import { app, BrowserWindow, ipcMain } from 'electron'
 //import { BinaryValue, Gpio } from 'onoff';
 import path from 'node:path'
 const { exec } = require('child_process');
+const Gpio = require("onoff").Gpio;
+const ThermalPrinter = require("node-thermal-printer").printer;
+const Types = require("node-thermal-printer").types;
+// Obtener la fecha y hora actual
+
+
+async function printImage() {
+  const fechaHoraActual = new Date();
+  fechaHoraActual.setHours(fechaHoraActual.getHours());
+
+  // Formatear la fecha y hora en una cadena
+  const cadenaFechaHora = fechaHoraActual.toLocaleString();
+  const printer = new ThermalPrinter({
+    type: Types.EPSON,
+    interface: '/home/pi/ticket.bin',
+  });
+  printer.alignCenter();
+  await printer.printImage('/home/pi/BuzonElectron/Prueba/g.png')
+  printer.bold(true);
+  printer.setTextSize(1, 1);
+  printer.println("SUS DOCUMENTOS");
+  printer.println("SERAN REVISADOS");
+  printer.newLine();
+  printer.newLine();
+  printer.bold(true);
+  printer.setTextSize(0, 0);
+  printer.println(cadenaFechaHora);
+
+  printer.cut();
+  printer.execute();
+}
+
 
 
 // The built directory structure
@@ -23,67 +55,62 @@ let win: BrowserWindow | null
 const VITE_DEV_SERVER_URL = process.env['VITE_DEV_SERVER_URL']
 
 function createWindow() {
-    win = new BrowserWindow({
-      icon: path.join(process.env.VITE_PUBLIC, 'electron-vite.svg'),
-      webPreferences: {
-        preload: path.join(__dirname, 'preload.js'),
-      },
-    })
+  win = new BrowserWindow({
+    icon: path.join(process.env.VITE_PUBLIC, 'electron-vite.svg'),
+    webPreferences: {
+      preload: path.join(__dirname, 'preload.js'),
+    },
+  })
   win.setMenu(null);
-win.setFullScreen(true);
-exec('gpio mode 2 out&&gpio write 2 1', (error, stdout, stderr) => {
-  if (error) {
-    console.error(`Error: ${error}`);
-    return;
+  win.setFullScreen(true);
+
+  // Test active push message to Renderer-process.
+  win.webContents.on('did-finish-load', () => {
+    win?.webContents.send('main-process-message', (new Date).toLocaleString())
+  })
+
+  if (VITE_DEV_SERVER_URL) {
+    win.loadURL(VITE_DEV_SERVER_URL)
+  } else {
+    // win.loadFile('dist/index.html')
+    win.loadFile(path.join(process.env.DIST, 'index.html'))
   }
-});
-// Test active push message to Renderer-process.
-win.webContents.on('did-finish-load', () => {
-  win?.webContents.send('main-process-message', (new Date).toLocaleString())
-})
-
-if (VITE_DEV_SERVER_URL) {
-  win.loadURL(VITE_DEV_SERVER_URL)
-} else {
-  // win.loadFile('dist/index.html')
-  win.loadFile(path.join(process.env.DIST, 'index.html'))
 }
-}
-ipcMain.on('data', (event, msg) => {
-  exec('gpio write 2 0', (error, stdout, stderr) => {
-    if (error) {
-      console.error(`Error: ${error}`);
-      return;
-    }
-
-    // Después de 500 ms, revertir a 1
-    setTimeout(() => {
-      exec('gpio write 2 1', (error, stdout, stderr) => {
-        if (error) {
-          console.error(`Error: ${error}`);
-          return;
-        }
-        console.log('gpio write 2 1 completado');
-      });
-    }, 100);
-  });
-  exec('node /home/orangepi/Desktop/prueba/index.js', (error, stdout, stderr) => {
-    if (error) {
-      console.error(`Error: ${error}`);
-      return;
-    }
-    console.log('ticket listo ');
-  });
-  setTimeout(() => {
-    exec('lp ticket.bin', (error, stdout, stderr) => {
+function executeCommand(command: any) {
+  return new Promise<void>((resolve, reject) => {
+    exec(command, (error: any, stdout: any) => {
       if (error) {
         console.error(`Error: ${error}`);
-        return;
+        reject(error);
+      } else {
+        console.log(stdout);
+        resolve();
       }
-      console.log('ticket impreso ');
     });
+  });
+}
+function mainFun(){
+  const led = new Gpio(4, 'out');
+  setTimeout(() => {
+
+    led.writeSync(0);
+    led.writeSync(1);
   }, 100);
+  printImage();
+}
+ipcMain.on('data', () => {
   
+  Promise.all([
+    mainFun()
+  ])
+    .then(() => {
+      // Luego de que ambos comandos anteriores hayan terminado, ejecutar el tercer comando
+      return executeCommand('lp /home/pi/ticket.bin');
+    })
+    .catch((error) => {
+      console.error(`Error en algún comando: ${error}`);
+    });
+    
 })
 // Quit when all windows are closed, except on macOS. There, it's common
 // for applications and their menu bar to stay active until the user quits
